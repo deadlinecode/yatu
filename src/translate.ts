@@ -116,7 +116,7 @@ export const translate = async (
     const done = await translateMap(
       langSpinner,
       filteredLangObj ?? langObj,
-      "en"
+      lang
     );
     langSpinner.text = `Writing to ${lang}.json`;
     await Bun.write(
