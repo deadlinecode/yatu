@@ -1,3 +1,4 @@
+import { htmlDecode } from "../utils";
 import type { TranslateRsp, UsageRsp } from "./Types";
 
 export default class DeepL {
@@ -24,25 +25,37 @@ export default class DeepL {
 
   usage = () => this.req<UsageRsp>("/usage", "GET");
 
-  translate = (
-    text: string,
-    lang: string,
-    sourceLang?: string,
-    options?: {
-      tag_handling?: "xml" | "html";
-    }
-  ) =>
-    this.req<TranslateRsp>("/translate", "POST", {
-      text: [text],
+  translate = (text: string, lang: string, sourceLang?: string) => {
+    const vars: string[] = [];
+    return this.req<TranslateRsp>("/translate", "POST", {
+      text: [
+        text.replace(
+          new RegExp(`{(.+?(?=}))`, "gm"),
+          (_: any, word: string) => `{${vars.push(word) - 1}`
+        ),
+      ],
       target_lang: lang,
       source_lang: sourceLang,
-      ...options,
-    }).then((x) => {
-      if (!x.translations) {
+      tag_handling: "html",
+    }).then((rsp) => {
+      if (!rsp.translations) {
         console.clear();
-        console.error(JSON.stringify(x, null, 2));
+        console.error(
+          `Didn't find translation for lang "${lang}" and txt "${text}"\nResponse:`,
+          JSON.stringify(rsp, null, 2)
+        );
         process.exit(1);
       }
-      return x;
+      return htmlDecode(
+        rsp.translations[0].text.replace(
+          new RegExp(`{(.+?(?=}))`, "gm"),
+          (wB, i) => {
+            const _i = parseInt(i);
+            if (isNaN(_i)) return wB;
+            return "{" + vars[_i];
+          }
+        )
+      );
     });
+  };
 }

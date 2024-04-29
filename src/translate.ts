@@ -50,10 +50,7 @@ const translateMap = async (
   for (let index = 0; index < txtArr.length; index++) {
     const txt = txtArr[index];
     promiseArr.push(
-      dl
-        .translate(txt, lang)
-        .then((r) => r.translations[0].text)
-        .then((t) => (translations[txt] = t))
+      dl.translate(txt, lang).then((t) => (translations[txt] = t))
     );
     if (index % 5 === 0) {
       await Promise.all(promiseArr);
