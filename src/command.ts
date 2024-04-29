@@ -24,6 +24,7 @@ yargs(hideBin(process.argv))
             "The API key for the translation service\nCan be found at \nhttps://deepl.com/de/your-account/keys\nDon't worry there is a free tier",
           type: "string",
           demandOption: true,
+          default: process.env.YATU_API_KEY,
         })
         .option("lang", {
           alias: "l",

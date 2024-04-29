@@ -71,7 +71,9 @@ const removeDupKeys = (a: LangSchema, b: LangSchema): LangSchema =>
         ? b[k]
           ? [k, undefined]
           : [k, v]
-        : [k, removeDupKeys(v, b[k] as any)]
+        : b[k]
+        ? [k, removeDupKeys(v, b[k] as any)]
+        : [k, v]
     )
   );
 
