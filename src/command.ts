@@ -2,6 +2,9 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { translate } from "./translate";
 import { TargetLanguageCodes } from "./DeepL/Types";
+import { configureEnv } from "./utils";
+
+configureEnv();
 
 yargs(hideBin(process.argv))
   .scriptName("yatu")
