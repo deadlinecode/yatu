@@ -3,6 +3,7 @@ import { TypeCompiler } from "@sinclair/typebox/compiler";
 import ora, { type Ora } from "ora";
 import DeepL from "./DeepL";
 import fs from "fs/promises";
+import path from "path";
 import { mergeDeep } from "./utils";
 
 type LangSchema = Static<typeof LangSchema>;
@@ -14,7 +15,7 @@ let dl: DeepL;
 let texts: Set<string> = new Set();
 let langObjs: Map<string, LangSchema> = new Map();
 
-export const resolveTranslate = (
+const resolveTranslate = (
   kv: LangSchema,
   cb: (txt: string) => string
 ): LangSchema =>
@@ -83,6 +84,8 @@ export const translate = async (
   langs: string[],
   minify?: boolean
 ) => {
+  const dir = (...paths: string[]) =>
+    path.join(path.dirname(fileName), ...paths);
   const spinner = ora("Reading file").start();
   const file = await Bun.file(fileName).json();
   spinner.text = "Validating file";
@@ -92,8 +95,8 @@ export const translate = async (
   spinner.stop();
   const usage = await dl.usage();
   for (const lang of langs) {
-    if (await fs.exists(`${lang}.json`)) {
-      const existingLangObj = await Bun.file(`${lang}.json`).json();
+    if (await fs.exists(dir(`${lang}.json`))) {
+      const existingLangObj = await Bun.file(dir(`${lang}.json`)).json();
       let filteredLangObj = removeDupKeys(langObj, existingLangObj);
       langObjs.set(lang, filteredLangObj);
       mapKV(filteredLangObj);
@@ -122,11 +125,11 @@ export const translate = async (
     );
     langSpinner.text = `Writing to ${lang}.json`;
     await Bun.write(
-      `${lang}.json`,
+      dir(`${lang}.json`),
       JSON.stringify(
         !filteredLangObj
           ? done
-          : mergeDeep(done, await Bun.file(`${lang}.json`).json()),
+          : mergeDeep(done, await Bun.file(dir(`${lang}.json`)).json()),
         null,
         minify ? 0 : 2
       )
